@@ -1,19 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Text, View, StyleSheet, Platform, TouchableOpacity, Alert, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthInput from "../components/AuthInput.js";
 import { registerUser, login } from '../services/userApiFunctions.js';
+import UserContext from '../middlewares/UserContext.js';
+
 
 // Use a função registerUser conforme necessário no componente.
 
 
 export default function Auth({ navigation }) {
 
+    const { userContext, setUserContext } = useContext(UserContext);
+
+    const [viewMode, setViewMode] = useState('client');
+
+
+
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [role, setRole] = useState("client");
+    const [role, setRole] = useState("admin");
     const [stageNew, setStageNew] = useState(false);
 
     const signinOrSignup = async () => {
@@ -31,7 +39,11 @@ export default function Auth({ navigation }) {
                 console.log(userData);
                 const result = await registerUser(userData);
                 console.log(result);
-                localStorage.setItem('token', result.token);
+                await saveToken(result.token);
+                console.log("Aqui é o result", result);
+
+                setUserContext(result.data.user);
+
                 Alert.alert('Sucesso!', 'Conta criada!');
             } catch (error) {
                 console.error('Erro ao criar conta:', error);
@@ -45,6 +57,9 @@ export default function Auth({ navigation }) {
                 console.log("Aqui é o result", result);
                 if (result.success) {
                     await saveToken(result.token);
+                    console.log("Aqui é o result", result);
+
+                    setUserContext(result.userData);
 
                     Alert.alert('Sucesso!', 'Logado com sucesso!');
                     navigation.navigate('Home');
@@ -57,6 +72,11 @@ export default function Auth({ navigation }) {
             }
         }
     };
+
+    const toggleViewMode = () => {
+        setViewMode(viewMode === 'client' ? 'worker' : 'client');
+    };
+
 
     async function saveToken(token) {
         try {
@@ -80,8 +100,8 @@ export default function Auth({ navigation }) {
 
     return (
 
-        <View style={styles.background}>
-            <Text style={styles.title}>Serviços de Estética</Text>
+        <View style={[styles.background, { backgroundColor: viewMode === 'client' ? '#ffffff' : '#72bcd4' }]}>
+            <Text style={styles.title}>{viewMode === 'client' ? 'Serviços de Estética' : 'Área do Trabalhador'}</Text>
             <View style={styles.formContainer}>
                 <Text style={styles.subtitle}>
                     {stageNew ? 'Crie sua conta' : 'Informe seus dados'}
@@ -137,6 +157,13 @@ export default function Auth({ navigation }) {
                     {stageNew ? 'Já possui conta?' : 'Ainda não pussui conta?'}
                 </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity style={styles.viewModeButton} onPress={toggleViewMode}>
+                <Text style={styles.viewModeButtonText}>
+                    Alternar para {viewMode === 'client' ? 'Worker' : 'Client'}
+                </Text>
+            </TouchableOpacity>
+
         </View>
     );
 }
@@ -146,6 +173,24 @@ const styles = StyleSheet.create({
     background: {
         flex: 1,
         width: '100%',
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    viewModeButton: {
+        position: 'absolute',
+        bottom: 10,
+        padding: 10,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 5,
+    },
+    viewModeButtonText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+
+    background: {
+        flex: 1,
+        width: "100%",
         alignItems: "center",
         justifyContent: "center",
     },

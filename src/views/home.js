@@ -1,10 +1,14 @@
 // src/views/home.js
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import Buttom from '../components/CommonButton.js';
-import { getProductsType } from '../services/productTypesApiFunction.js';
+import { getProductsType } from '../services/productTypesApiFunctions.js';
+import TypeProductsContext from '../middlewares/TypeProductsContext.js';
 
 const Home = ({ navigation }) => {
+
+  const { setTypeProductsContext } = useContext(TypeProductsContext);
 
   const [productTypes, setProductTypes] = useState([]);
 
@@ -14,6 +18,7 @@ const Home = ({ navigation }) => {
       console.log(response);
       if (response.success) {
         setProductTypes(response.data);
+        setTypeProductsContext(response.data);
       } else {
         console.error('Erro ao buscar tipos de produtos');
       }
@@ -35,15 +40,24 @@ const Home = ({ navigation }) => {
             <Buttom
               key={index}
               title={type.description}
-              backgroundColor={type.backgroundColor} 
+              backgroundColor={type.backgroundColor}
               borderRadius={type.borderRadius}
               onClick={() =>
-                navigation.navigate('Products', {...type})
+                navigation.navigate('Products', { ...type })
               } />
           ))
         }
-
       </View>
+      <View style={styles.shoppingCart}>
+        <TouchableOpacity onPress={() => navigation.navigate('ShoppingCartScreen')}>
+          <View style={styles.buttonWithIcon}>
+            <Icon name="shopping-cart" size={24} color="#333" />
+            <Text style={styles.shoppingCartText}>Carrinho de compras</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+
     </SafeAreaView>
   );
 };
@@ -59,6 +73,24 @@ const styles = StyleSheet.create({
     fontSize: 35,
     margin: 10
   },
+  buttonWithIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  
+  shoppingCart: {
+    position: "absolute",
+    bottom: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  
+  shoppingCartText: {
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  
   shoppingCart: {
     marginTop: 200,
     alignItems: "center"

@@ -5,7 +5,7 @@ export async function registerUser(user) {
     try {
         const response = await api.post('/user', user);
 
-        if (response.status === 200) {
+        if (response.status === 201) {
             console.log('Usuário registrado com sucesso:', response.data);
             return { data: response.data, token: response.headers['x-auth-token'] };
         }
@@ -21,17 +21,16 @@ export async function login({ email, password }) {
     try {
         const response = await api.post("/login", { email, password });
         console.log("Aqui é o response", response);
-        const { token } = response.data;
-        return { success: true, token };
+        const { token, data } = response.data;
+        return { success: true, token, userData: data };
     } catch (error) {
         console.error("Ocorreu um erro na requisição:", error);
         if (error.response) {
-            // A API retornou um erro
             console.error("Detalhes do erro:", error.response.data);
             return { success: false, message: error.response.data.message };
         } else {
-            // Outro tipo de erro ocorreu
             return { success: false, message: "Erro ao fazer login" };
         }
     }
 }
+
